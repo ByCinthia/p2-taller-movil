@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "759500035327",
+    "project_id": "proyectos-sistemas",
+    "storage_bucket": "proyectos-sistemas.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:759500035327:android:e8e8c3fcd17a51696e28ca",
+        "android_client_info": {
+          "package_name": "com.example.auxiliomecanico_movil"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDu9M0GExC_6xiqE_ZIUznnySH0Dm85nCM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
