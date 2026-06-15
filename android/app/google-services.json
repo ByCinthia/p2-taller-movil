@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "759500035327",
-    "project_id": "proyectos-sistemas",
-    "storage_bucket": "proyectos-sistemas.firebasestorage.app"
+    "project_number": "314510612181",
+    "project_id": "auxiliomecanico-f0789",
+    "storage_bucket": "auxiliomecanico-f0789.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:759500035327:android:e8e8c3fcd17a51696e28ca",
+        "mobilesdk_app_id": "1:314510612181:android:e4a4b279854e119affb45c",
         "android_client_info": {
           "package_name": "com.example.auxiliomecanico_movil"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDu9M0GExC_6xiqE_ZIUznnySH0Dm85nCM"
+          "current_key": "AIzaSyBc3WPP5f6T4FScC5fr4s0rcgBixdcB4kw"
         }
       ],
       "services": {

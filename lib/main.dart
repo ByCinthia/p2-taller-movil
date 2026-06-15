@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:auxiliomecanico_movil/firebase_options.dart';
 import 'package:auxiliomecanico_movil/features/autenticacion/estado/autenticacion_proveedor.dart';
 import 'package:auxiliomecanico_movil/features/mapa_rastreo/estado/ubicacion_proveedor.dart';
 import 'package:auxiliomecanico_movil/core/conexion/servicio_api.dart';
@@ -25,10 +26,13 @@ import 'package:auxiliomecanico_movil/features/notificaciones/vistas/lista_notif
 import 'package:auxiliomecanico_movil/core/tema/tema_aplicacion.dart';
 import 'package:auxiliomecanico_movil/features/notificaciones/servicios/notificaciones_service.dart';
 
-/// Manejador de mensajes en background
+/// Manejador de mensajes en background (DEBE ser función de nivel superior)
+@pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
     await NotificationService.handleBackgroundMessage(message);
   } catch (e) {
     debugPrint('Firebase no disponible en background: $e');
@@ -46,12 +50,16 @@ void main() async {
 
   try {
     debugPrint('🔥 Inicializando Firebase...');
-    await Firebase.initializeApp();
-    debugPrint('✅ Firebase inicializado');
-    
-    FirebaseMessaging.onBackgroundMessage(
-      _firebaseMessagingBackgroundHandler,
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
     );
+    debugPrint('✅ Firebase inicializado');
+
+    //imprimri en la consola el fcm token para pruebas
+    String? fcmToken = await FirebaseMessaging.instance.getToken();
+    debugPrint('🔑 FCM Token: $fcmToken');
+
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     debugPrint('✅ Background message handler registrado');
   } catch (e) {
     debugPrint('⚠️ No se pudo inicializar Firebase en main: $e');
@@ -67,13 +75,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => AuthProvider(),
-        ),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProxyProvider<AuthProvider, LocationProvider>(
-          create: (_) => LocationProvider(
-            apiService: ApiService(),
-          ),
+          create: (_) => LocationProvider(apiService: ApiService()),
           update: (_, authProvider, locationProvider) {
             // Actualizar el token en LocationProvider si es necesario
             return locationProvider ??
@@ -105,9 +109,11 @@ class MyApp extends StatelessWidget {
           '/detalle-incidente': (context) => const DetalleIncidenteScreen(),
           '/empleado/perfil': (context) => const EmployeeProfileScreen(),
           '/empleado/home': (context) => const EmployeeHomeScreen(),
-          '/empleado/asignaciones': (context) => const EmployeeAssignmentsScreen(),
+          '/empleado/asignaciones': (context) =>
+              const EmployeeAssignmentsScreen(),
           '/empleado/tracking': (context) {
-            final incidenteId = ModalRoute.of(context)?.settings.arguments as String?;
+            final incidenteId =
+                ModalRoute.of(context)?.settings.arguments as String?;
             if (incidenteId == null) {
               return const Scaffold(
                 body: Center(child: Text('ID de incidente no proporcionado')),
@@ -186,7 +192,7 @@ class _AuthCheckState extends State<AuthCheck> {
       // Redirige directamente al perfil correspondiente según el rol.
       final userRole = authProvider.userRole;
       debugPrint('🔀 ROUTING: Rol del usuario = $userRole');
-      
+
       if (userRole == 'admin') {
         debugPrint('🔀 -> Dirigiendo a AdminProfileScreen');
         return const AdminProfileScreen();
@@ -202,7 +208,9 @@ class _AuthCheckState extends State<AuthCheck> {
         return const EmployeeProfileScreen();
       }
 
-      debugPrint('🔀 -> Rol desconocido: "$userRole", dirigiendo a LoginScreen');
+      debugPrint(
+        '🔀 -> Rol desconocido: "$userRole", dirigiendo a LoginScreen',
+      );
       return const LoginScreen();
     } catch (e, stackTrace) {
       debugPrint('❌ ERROR EN AuthCheck.build(): $e');
@@ -214,8 +222,10 @@ class _AuthCheckState extends State<AuthCheck> {
             children: [
               const Icon(Icons.error, color: Colors.red, size: 64),
               const SizedBox(height: 16),
-              const Text('Error Crítico',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text(
+                'Error Crítico',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 8),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
