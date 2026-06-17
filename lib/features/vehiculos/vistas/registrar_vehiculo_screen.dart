@@ -38,15 +38,17 @@ class _VehicleRegisterScreenState extends State<VehicleRegisterScreen> {
     try {
       final auth = context.read<AuthProvider>();
       final svc = VehiculoService(token: auth.token);
-      await svc.registrarVehiculo({
-        'marca': _brandController.text.trim(),
-        'modelo': _modelController.text.trim(),
-        'placa': _plateController.text.trim(),
-        'anio': _yearController.text.trim().isEmpty
-            ? null
-            : int.tryParse(_yearController.text.trim()),
-        'principal': _principal,
-      });
+      final int? parsedYear = _yearController.text.trim().isEmpty
+          ? null
+          : int.tryParse(_yearController.text.trim());
+
+      await svc.registrarVehiculo(
+        marca: _brandController.text.trim(),
+        modelo: _modelController.text.trim(),
+        placa: _plateController.text.trim(),
+        anio: parsedYear,
+        principal: _principal,
+      );
 
       if (!mounted) return;
       ScaffoldMessenger.of(

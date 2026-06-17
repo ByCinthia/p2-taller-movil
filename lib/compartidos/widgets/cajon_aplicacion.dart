@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:auxiliomecanico_movil/features/autenticacion/estado/autenticacion_proveedor.dart';
+import 'package:auxiliomecanico_movil/features/vehiculos/vistas/registrar_vehiculo_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -40,15 +41,24 @@ class AppDrawer extends StatelessWidget {
               title: const Text('Mis vehículos'),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.pushNamed(context, '/client/vehicles');
+                Navigator.pushReplacementNamed(context, '/vehiculos');
               },
             ),
             ListTile(
               leading: const Icon(Icons.add),
               title: const Text('Registrar vehículo'),
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(context);
-                Navigator.pushNamed(context, '/client/register-vehicle');
+                final created = await Navigator.push<bool>(
+                  context,
+                  MaterialPageRoute<bool>(
+                    builder: (_) => const VehicleRegisterScreen(),
+                  ),
+                );
+                if (created == true) {
+                  // Reemplazar la ruta actual por la lista de vehículos para evitar apilar
+                  Navigator.pushReplacementNamed(context, '/vehiculos');
+                }
               },
             ),
             ListTile(
@@ -100,7 +110,11 @@ class AppDrawer extends StatelessWidget {
               title: const Text('Solicitudes Asignadas'),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.pushNamed(context, '/empleado/asignaciones', arguments: 'asignadas');
+                Navigator.pushNamed(
+                  context,
+                  '/empleado/asignaciones',
+                  arguments: 'asignadas',
+                );
               },
             ),
             ListTile(
@@ -108,7 +122,11 @@ class AppDrawer extends StatelessWidget {
               title: const Text('Servicio en Curso'),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.pushNamed(context, '/empleado/asignaciones', arguments: 'curso');
+                Navigator.pushNamed(
+                  context,
+                  '/empleado/asignaciones',
+                  arguments: 'curso',
+                );
               },
             ),
             ListTile(
@@ -116,7 +134,11 @@ class AppDrawer extends StatelessWidget {
               title: const Text('Historial'),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.pushNamed(context, '/empleado/asignaciones', arguments: 'historial');
+                Navigator.pushNamed(
+                  context,
+                  '/empleado/asignaciones',
+                  arguments: 'historial',
+                );
               },
             ),
             ListTile(

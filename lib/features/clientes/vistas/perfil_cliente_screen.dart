@@ -42,6 +42,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return Scaffold(
         appBar: AppBar(title: const Text('Mi perfil')),
         drawer: const AppDrawer(),
+        backgroundColor: Colors.grey.shade100,
         body: _ClientProfileView(user: user, initial: _initialFrom(user)),
       );
     } catch (e, stackTrace) {
@@ -49,9 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       debugPrint('Stack: $stackTrace');
       return Scaffold(
         appBar: AppBar(title: const Text('Error')),
-        body: Center(
-          child: Text('Error cargando perfil: $e'),
-        ),
+        body: Center(child: Text('Error cargando perfil: $e')),
       );
     }
   }
@@ -83,12 +82,25 @@ class _ClientProfileView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Mi perfil', style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    'Bienvenido, ${user?.firstName ?? user?.username ?? 'Cliente'}',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text('Correo: ${user?.email ?? 'N/A'}'),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Mi perfil',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   const SizedBox(height: 12),
                   _InfoRow(label: 'Usuario', value: user?.username ?? 'N/A'),
                   _InfoRow(label: 'Correo', value: user?.email ?? 'N/A'),
-                  _InfoRow(label: 'Nombre', value: user?.fullName),
-                  _InfoRow(label: 'Rol', value: user?.role.toUpperCase() ?? 'N/A'),
+                  _InfoRow(label: 'Nombre', value: user?.fullName ?? 'N/A'),
+                  _InfoRow(
+                    label: 'Rol',
+                    value: (user?.role ?? 'N/A').toUpperCase(),
+                  ),
                 ],
               ),
             ),
@@ -96,8 +108,26 @@ class _ClientProfileView extends StatelessWidget {
           const SizedBox(height: 16),
           Card(
             child: ListTile(
+              leading: const Icon(Icons.directions_car),
+              title: const Text('Mis vehículos'),
+              subtitle: const Text('Ver y gestionar tus vehículos'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.pushNamed(context, '/vehiculos'),
+            ),
+          ),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.add),
+              title: const Text('Registrar vehículo'),
+              subtitle: const Text('Agregar un vehículo nuevo'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.pushNamed(context, '/registrar-vehiculo'),
+            ),
+          ),
+          Card(
+            child: ListTile(
               leading: const Icon(Icons.report),
-              title: const Text('Solicitar auxilio'),
+              title: const Text('Solicitud de auxilio'),
               subtitle: const Text('Crear una nueva solicitud de auxilio'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.pushNamed(context, '/solicitud-auxilio'),
@@ -109,7 +139,8 @@ class _ClientProfileView extends StatelessWidget {
               title: const Text('Seguimiento de solicitudes'),
               subtitle: const Text('Ver tus solicitudes y su estado'),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.pushNamed(context, '/historial-incidentes'),
+              onTap: () =>
+                  Navigator.pushNamed(context, '/historial-incidentes'),
             ),
           ),
           Card(
@@ -126,9 +157,7 @@ class _ClientProfileView extends StatelessWidget {
     } catch (e, stackTrace) {
       debugPrint('❌ [_ClientProfileView] Error: $e');
       debugPrint('Stack: $stackTrace');
-      return Center(
-        child: Text('Error en vista: $e'),
-      );
+      return Center(child: Text('Error en vista: $e'));
     }
   }
 }
@@ -155,7 +184,13 @@ class _ProfileHeader extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 28,
-              child: Text(initial, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              child: Text(
+                initial,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -195,7 +230,13 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 88, child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600))),
+          SizedBox(
+            width: 88,
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
           Expanded(child: Text(value?.isNotEmpty == true ? value! : 'N/A')),
         ],
       ),

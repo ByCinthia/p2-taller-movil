@@ -26,13 +26,13 @@ class AuthProvider with ChangeNotifier {
   String? get error => _error;
 
   /// Obtiene el rol del usuario actual
-  String? get userRole => _user?.role;
+  String? get userRole => _user?.role?.toString().toLowerCase().trim();
 
   /// Obtiene si el usuario es admin
-  bool get isAdmin => _user?.role == AppConstants.roleAdmin;
+  bool get isAdmin => userRole == AppConstants.roleAdmin;
 
   /// Obtiene si el usuario autenticado es cliente
-  bool get isClient => _user?.role == 'cliente';
+  bool get isClient => userRole == 'cliente';
 
   User _mergeProfileWithTokenRole(
     User profile,
@@ -42,9 +42,10 @@ class AuthProvider with ChangeNotifier {
     final tokenIsAdmin =
         tokenData['is_admin'] == true || tokenData['es_admin'] == true;
 
-    final effectiveRole = (tokenRole == AppConstants.roleAdmin ||
-              tokenRole == 'cliente' ||
-              tokenRole == AppConstants.roleEmployee)
+    final effectiveRole =
+        (tokenRole == AppConstants.roleAdmin ||
+            tokenRole == 'cliente' ||
+            tokenRole == AppConstants.roleEmployee)
         ? tokenRole!
         : (tokenIsAdmin ? AppConstants.roleAdmin : profile.role);
 
@@ -71,6 +72,11 @@ class AuthProvider with ChangeNotifier {
       debugPrint('❌ FATAL: Error en _initializeAuth: $e');
       _isLoading = false;
       _error = 'Error crítico inicializando autenticación';
+      debugPrint('[AuthProvider] constructor catch -> isLoading: $_isLoading');
+      debugPrint(
+        '[AuthProvider] constructor catch -> isAuthenticated: ${isAuthenticated}',
+      );
+      debugPrint('[AuthProvider] constructor catch -> userRole: ${userRole}');
       notifyListeners();
     });
   }
@@ -80,7 +86,7 @@ class AuthProvider with ChangeNotifier {
     try {
       _isLoading = true;
       notifyListeners();
-      
+
       debugPrint('🔑 Iniciando lectura de tokens almacenados...');
       _token = await _storage.read(key: AppConstants.storageKeyToken);
       _refreshToken = await _storage.read(
@@ -103,7 +109,7 @@ class AuthProvider with ChangeNotifier {
               throw Exception('Timeout obteniendo perfil (10s)');
             },
           );
-          
+
           _user = _mergeProfileWithTokenRole(profile, decodedToken);
           debugPrint('✅ Usuario obtenido del backend: $_user');
           debugPrint('✅ Rol del usuario: ${_user?.role}');
@@ -130,6 +136,15 @@ class AuthProvider with ChangeNotifier {
       // No rethrow - solo continuar
     } finally {
       _isLoading = false;
+      debugPrint(
+        '[AuthProvider] _initializeAuth finally -> isLoading: $_isLoading',
+      );
+      debugPrint(
+        '[AuthProvider] _initializeAuth finally -> isAuthenticated: ${isAuthenticated}',
+      );
+      debugPrint(
+        '[AuthProvider] _initializeAuth finally -> userRole: ${userRole}',
+      );
       try {
         notifyListeners();
       } catch (e) {
@@ -140,11 +155,11 @@ class AuthProvider with ChangeNotifier {
 
   /// Realizar login con usuario y contraseña
   Future<bool> login(String username, String password) async {
-    try {
-      _isLoading = true;
-      _error = null;
-      notifyListeners();
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
 
+    try {
       final apiService = ApiService();
       final response = await apiService.login(
         username: username,
@@ -177,23 +192,26 @@ class AuthProvider with ChangeNotifier {
         await authApiService.getProfile(),
         decodedToken,
       );
-      print('✅ Login exitoso. Usuario: $_user');
-      print('✅ Rol detectado: ${_user?.role}');
+      debugPrint('✅ Login exitoso. Usuario: $_user');
+      debugPrint('✅ Rol detectado: ${_user?.role}');
 
       // Obtener FCM token y enviarlo al backend
       await _sendFcmToken(authApiService);
 
-      _isLoading = false;
-      notifyListeners();
       return true;
     } catch (e) {
       _error = _getErrorMessage(e.toString());
       _token = null;
       _refreshToken = null;
       _user = null;
-      _isLoading = false;
-      notifyListeners();
+      debugPrint('⚠️ Login fallido: $e');
       return false;
+    } finally {
+      _isLoading = false;
+      debugPrint('[AuthProvider] isLoading: $_isLoading');
+      debugPrint('[AuthProvider] isAuthenticated: ${isAuthenticated}');
+      debugPrint('[AuthProvider] userRole: ${userRole}');
+      notifyListeners();
     }
   }
 
@@ -205,11 +223,11 @@ class AuthProvider with ChangeNotifier {
     String? email,
     String? telefono,
   }) async {
-    try {
-      _isLoading = true;
-      _error = null;
-      notifyListeners();
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
 
+    try {
       final apiService = ApiService();
       final response = await apiService.registerClient(
         nombre: nombre,
@@ -243,17 +261,27 @@ class AuthProvider with ChangeNotifier {
         decodedToken,
       );
 
-      _isLoading = false;
-      notifyListeners();
       return true;
     } catch (e) {
       _error = _getErrorMessage(e.toString());
       _token = null;
       _refreshToken = null;
       _user = null;
-      _isLoading = false;
-      notifyListeners();
+      debugPrint('⚠️ Registro fallido: $e');
       return false;
+    } finally {
+      _isLoading = false;
+      debugPrint(
+        '[AuthProvider] _initializeAuth finally -> isLoading: $_isLoading',
+      );
+      debugPrint(
+        '[AuthProvider] _initializeAuth finally -> isAuthenticated: $isAuthenticated',
+      );
+      debugPrint(
+        '[AuthProvider] _initializeAuth finally -> userRole: $userRole',
+      );
+      debugPrint('[AuthProvider] notifyListeners ejecutado después de init');
+      notifyListeners();
     }
   }
 
@@ -276,6 +304,12 @@ class AuthProvider with ChangeNotifier {
       _refreshToken = null;
       _user = null;
       _error = null;
+      _isLoading = false;
+      debugPrint('[AuthProvider] logout -> isLoading: $_isLoading');
+      debugPrint(
+        '[AuthProvider] logout -> isAuthenticated: ${isAuthenticated}',
+      );
+      debugPrint('[AuthProvider] logout -> userRole: ${userRole}');
       notifyListeners();
     }
   }

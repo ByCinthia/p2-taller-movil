@@ -18,7 +18,8 @@ class Vehicle {
   });
 
   factory Vehicle.fromJson(Map<String, dynamic> json) {
-    final rawAnio = json['anio'];
+    // Prefer `anio` (API schema). Fall back to DB column `ano` if present.
+    final rawAnio = json.containsKey('anio') ? json['anio'] : json['ano'];
     return Vehicle(
       id: (json['id'] ?? '').toString(),
       clienteId: (json['cliente_id'] ?? '').toString(),

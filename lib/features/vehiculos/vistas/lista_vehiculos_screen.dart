@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:auxiliomecanico_movil/compartidos/widgets/cajon_aplicacion.dart';
 import 'package:auxiliomecanico_movil/features/vehiculos/servicios/vehiculo_service.dart';
 import 'package:auxiliomecanico_movil/features/vehiculos/modelos/vehiculo.dart';
+import 'package:auxiliomecanico_movil/features/vehiculos/vistas/registrar_vehiculo_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:auxiliomecanico_movil/features/autenticacion/estado/autenticacion_proveedor.dart';
 
@@ -35,7 +36,16 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Vehículos')),
+      appBar: AppBar(
+        title: const Text('Vehículos'),
+        actions: [
+          IconButton(
+            tooltip: 'Registrar vehículo',
+            icon: const Icon(Icons.add),
+            onPressed: _openRegister,
+          ),
+        ],
+      ),
       drawer: const AppDrawer(),
       body: FutureBuilder<List<Vehicle>>(
         future: _future,
@@ -44,14 +54,21 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
+            final err = snapshot.error.toString();
+            String message = 'Error: $err';
+            if (err.contains('401') ||
+                err.contains('403') ||
+                err.contains('No autorizado')) {
+              message = 'Sesión expirada, inicia sesión nuevamente';
+            }
             return Padding(
               padding: const EdgeInsets.all(16),
-              child: Center(child: Text('Error: ${snapshot.error}')),
+              child: Center(child: Text(message)),
             );
           }
           final vehicles = snapshot.data ?? [];
           if (vehicles.isEmpty)
-            return const Center(child: Text('No hay vehículos'));
+            return const Center(child: Text('No tienes vehículos registrados'));
           return ListView.separated(
             padding: const EdgeInsets.all(12),
             itemBuilder: (context, index) {
@@ -73,13 +90,15 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
                     final svc = VehiculoService(token: auth.token);
                     if (choice == 'editar') {
                       // abrir formulario de edición (reusar VehicleRegisterScreen)
-                      final updated = await Navigator.pushNamed(
+                      final updated = await Navigator.push<bool>(
                         context,
-                        '/registrar-vehiculo',
-                        arguments: v,
+                        MaterialPageRoute<bool>(
+                          builder: (_) => const VehicleRegisterScreen(),
+                        ),
                       );
-                      if (updated == true)
+                      if (updated == true) {
                         setState(() => _future = svc.getMisVehiculos());
+                      }
                     } else if (choice == 'eliminar') {
                       final confirm = await showDialog<bool>(
                         context: context,
@@ -128,5 +147,20 @@ class _VehiclesListScreenState extends State<VehiclesListScreen> {
         },
       ),
     );
+  }
+
+  Future<void> _openRegister() async {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final svc = VehiculoService(token: auth.token);
+
+    final created = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute<bool>(builder: (_) => const VehicleRegisterScreen()),
+    );
+
+    if (created == true) {
+      if (!mounted) return;
+      setState(() => _future = svc.getMisVehiculos());
+    }
   }
 }

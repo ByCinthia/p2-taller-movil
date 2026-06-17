@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:auxiliomecanico_movil/core/conexion/servicio_api.dart';
 import 'package:auxiliomecanico_movil/features/vehiculos/modelos/vehiculo.dart';
 
@@ -11,13 +10,19 @@ class VehiculoService {
     return _api.getMyVehicles();
   }
 
-  Future<Vehicle> registrarVehiculo(Map<String, dynamic> data) async {
+  Future<Vehicle> registrarVehiculo({
+    required String marca,
+    required String modelo,
+    required String placa,
+    int? anio,
+    bool principal = false,
+  }) async {
     return _api.createMyVehicle(
-      marca: data['marca'] ?? '',
-      modelo: data['modelo'] ?? '',
-      placa: data['placa'] ?? '',
-      anio: data['anio'] as int?,
-      principal: data['principal'] == true,
+      marca: marca,
+      modelo: modelo,
+      placa: placa,
+      anio: anio,
+      principal: principal,
     );
   }
 

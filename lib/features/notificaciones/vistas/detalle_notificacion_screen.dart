@@ -8,10 +8,7 @@ import 'package:auxiliomecanico_movil/features/autenticacion/estado/autenticacio
 class NotificationDetailScreen extends StatefulWidget {
   final Map<String, dynamic> notification;
 
-  const NotificationDetailScreen({
-    super.key,
-    required this.notification,
-  });
+  const NotificationDetailScreen({super.key, required this.notification});
 
   @override
   State<NotificationDetailScreen> createState() =>
@@ -38,8 +35,9 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
     if (token == null) return;
 
     try {
-      await ApiService(token: token)
-          .markNotificationAsRead(_notification['id'].toString());
+      await ApiService(
+        token: token,
+      ).markNotificationAsRead(_notification['id'].toString());
       setState(() {
         _notification['leida'] = true;
       });
@@ -49,7 +47,8 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
   }
 
   Future<void> _navigateToIncident() async {
-    final data = (_notification['data'] as Map?)?.cast<String, dynamic>() ??
+    final data =
+        (_notification['data'] as Map?)?.cast<String, dynamic>() ??
         const <String, dynamic>{};
     final incidentId = data['incidente_id']?.toString();
 
@@ -67,7 +66,7 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
       Navigator.pushNamed(
         context,
         '/detalle-incidente',
-        arguments: {'incidentId': incidentId},
+        arguments: {'incidente_id': incidentId},
       );
     }
   }
@@ -85,10 +84,12 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final data = (_notification['data'] as Map?)?.cast<String, dynamic>() ??
+    final data =
+        (_notification['data'] as Map?)?.cast<String, dynamic>() ??
         const <String, dynamic>{};
     final isRead = _notification['leida'] == true;
-    final hasIncident = data['incidente_id'] != null &&
+    final hasIncident =
+        data['incidente_id'] != null &&
         data['incidente_id'].toString().isNotEmpty;
 
     return Scaffold(
@@ -105,8 +106,10 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
             Row(
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: isRead ? Colors.grey.shade200 : Colors.blue.shade100,
                     borderRadius: BorderRadius.circular(16),
@@ -115,12 +118,11 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        isRead
-                            ? Icons.done_all
-                            : Icons.notifications_active,
+                        isRead ? Icons.done_all : Icons.notifications_active,
                         size: 16,
-                        color:
-                            isRead ? Colors.grey.shade600 : Colors.blue.shade700,
+                        color: isRead
+                            ? Colors.grey.shade600
+                            : Colors.blue.shade700,
                       ),
                       const SizedBox(width: 6),
                       Text(
@@ -128,8 +130,9 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color:
-                              isRead ? Colors.grey.shade600 : Colors.blue.shade700,
+                          color: isRead
+                              ? Colors.grey.shade600
+                              : Colors.blue.shade700,
                         ),
                       ),
                     ],
@@ -140,10 +143,7 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
             const SizedBox(height: 20),
 
             // Título
-            Text(
-              'Título',
-              style: Theme.of(context).textTheme.labelMedium,
-            ),
+            Text('Título', style: Theme.of(context).textTheme.labelMedium),
             const SizedBox(height: 6),
             Card(
               child: Padding(
@@ -157,10 +157,7 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
             const SizedBox(height: 16),
 
             // Mensaje
-            Text(
-              'Mensaje',
-              style: Theme.of(context).textTheme.labelMedium,
-            ),
+            Text('Mensaje', style: Theme.of(context).textTheme.labelMedium),
             const SizedBox(height: 6),
             Card(
               child: Padding(
@@ -174,10 +171,7 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
             const SizedBox(height: 16),
 
             // Fecha
-            Text(
-              'Fecha',
-              style: Theme.of(context).textTheme.labelMedium,
-            ),
+            Text('Fecha', style: Theme.of(context).textTheme.labelMedium),
             const SizedBox(height: 6),
             Card(
               child: Padding(
@@ -301,15 +295,21 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
                             DataColumn(label: Text('Valor')),
                           ],
                           rows: data.entries
-                              .where((e) =>
-                                  e.key != 'incidente_id' &&
-                                  e.key != 'actor_nombre' &&
-                                  e.key != 'tipo' &&
-                                  e.key != 'titulo')
-                              .map((e) => DataRow(cells: [
+                              .where(
+                                (e) =>
+                                    e.key != 'incidente_id' &&
+                                    e.key != 'actor_nombre' &&
+                                    e.key != 'tipo' &&
+                                    e.key != 'titulo',
+                              )
+                              .map(
+                                (e) => DataRow(
+                                  cells: [
                                     DataCell(Text(e.key)),
                                     DataCell(Text(e.value?.toString() ?? '-')),
-                                  ]))
+                                  ],
+                                ),
+                              )
                               .toList(),
                         ),
                       ),
