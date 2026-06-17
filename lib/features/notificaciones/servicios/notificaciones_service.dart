@@ -25,18 +25,22 @@ class NotificationService {
   ) async {
     try {
       if (_localNotificationsInitialized) return;
+      // Usar canal v2 para evitar caché de Android con canal de baja prioridad previo
       const androidChannel = AndroidNotificationChannel(
-        'auxiliomecanico_channel',
-        'Auxilio Mecánico',
-        description: 'Canal para notificaciones de auxilio mecánico',
+        'high_importance_channel_v2',
+        'Auxilio Mecánico — Alertas',
+        description: 'Alertas urgentes de auxilio mecánico con sonido y vibración',
         importance: Importance.max,
+        playSound: true,
         enableVibration: true,
+        enableLights: true,
       );
       await _localNotifications
           .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin
           >()
           ?.createNotificationChannel(androidChannel);
+      if (kDebugMode) debugPrint("Canal creado: high_importance_channel_v2");
       const initializationSettingsAndroid = AndroidInitializationSettings(
         '@mipmap/ic_launcher',
       );
@@ -205,14 +209,16 @@ class NotificationService {
   }) async {
     try {
       const androidDetails = AndroidNotificationDetails(
-        'auxiliomecanico_channel',
-        'Auxilio Mecánico',
-        channelDescription: 'Canal para notificaciones de auxilio mecánico',
+        'high_importance_channel_v2',
+        'Auxilio Mecánico — Alertas',
+        channelDescription: 'Alertas urgentes de auxilio mecánico con sonido y vibración',
         importance: Importance.max,
         priority: Priority.high,
         playSound: true,
         enableVibration: true,
         enableLights: true,
+        fullScreenIntent: true,
+        visibility: NotificationVisibility.public,
       );
       const platformChannelSpecifics = NotificationDetails(
         android: androidDetails,
@@ -243,10 +249,13 @@ class NotificationService {
     RemoteMessage message,
     Function(String?) onIncidentNotification,
   ) {
-    if (kDebugMode)
+    if (kDebugMode) {
+      debugPrint("Notificación foreground recibida");
+      debugPrint("Payload recibido: ${message.data}");
       debugPrint(
-        '[NotificationService] Foreground message data=${message.data} title=${message.notification?.title}',
+        '[NotificationService] Foreground message title=${message.notification?.title}',
       );
+    }
     // Prefer to show incidente tipo (if present) to make the notification clearer
     final tipo = message.data['tipo'];
     final titleToShow = tipo != null && tipo.isNotEmpty
@@ -293,15 +302,18 @@ class NotificationService {
     String? payload,
   }) async {
     try {
+      if (kDebugMode) debugPrint("Mostrando notificación local");
       const androidDetails = AndroidNotificationDetails(
-        'auxiliomecanico_channel',
-        'Auxilio Mecánico',
-        channelDescription: 'Canal para notificaciones de auxilio mecánico',
+        'high_importance_channel_v2',
+        'Auxilio Mecánico — Alertas',
+        channelDescription: 'Alertas urgentes de auxilio mecánico con sonido y vibración',
         importance: Importance.max,
         priority: Priority.high,
         playSound: true,
         enableVibration: true,
         enableLights: true,
+        fullScreenIntent: true,
+        visibility: NotificationVisibility.public,
       );
       const platformChannelSpecifics = NotificationDetails(
         android: androidDetails,
