@@ -1,4 +1,4 @@
-﻿import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -72,13 +72,30 @@ class NotificationService {
       if (_listenersInitialized) return;
       if (kDebugMode)
         debugPrint('[NotificationService] Inicializando listeners...');
-      _initializeLocalNotifications((String? incidentId) {
-        if (incidentId != null && incidentId.isNotEmpty) {
-          onIncidentNotification(incidentId);
-          Navigator.of(context).pushNamed(
-            '/detalle-incidente',
-            arguments: {'incidente_id': incidentId},
-          );
+      _initializeLocalNotifications((String? payload) {
+        if (payload != null && payload.isNotEmpty) {
+          // payload format: "ruta|incidenteId" o solo "incidenteId"
+          String? ruta;
+          String incidenteId = payload;
+          if (payload.contains('|')) {
+            final parts = payload.split('|');
+            ruta = parts[0].isNotEmpty ? parts[0] : null;
+            incidenteId = parts.length > 1 ? parts[1] : '';
+          }
+          if (incidenteId.isNotEmpty) {
+            onIncidentNotification(incidenteId);
+            if (ruta == '/tracking') {
+              Navigator.of(context).pushNamed(
+                '/tracking',
+                arguments: {'incidente_id': incidenteId},
+              );
+            } else {
+              Navigator.of(context).pushNamed(
+                '/detalle-incidente',
+                arguments: {'incidente_id': incidenteId},
+              );
+            }
+          }
         }
       }).ignore();
 
@@ -201,12 +218,17 @@ class NotificationService {
         android: androidDetails,
       );
 
+      // Incluir ruta en payload para navegación al tocar: "ruta|incidenteId"
+      final incidenteId =
+          (data['incidente_id'] ?? data['incidentId'] ?? '').toString();
+      final ruta = (data['ruta'] ?? '').toString();
+      final payloadStr = '${ruta}|${incidenteId}';
       await _localNotifications.show(
         DateTime.now().millisecond,
         title,
         body,
         platformChannelSpecifics,
-        payload: data['incidente_id'] ?? '',
+        payload: payloadStr,
       );
     } catch (e) {
       if (kDebugMode)
@@ -232,14 +254,43 @@ class NotificationService {
         : (message.notification?.title ?? 'Nuevo aviso');
     final bodyToShow =
         message.notification?.body ?? (message.data['message'] ?? '');
-    _showNotificationPopup(title: titleToShow, body: bodyToShow);
-    final incidentId = message.data['incidente_id'];
-    if (incidentId != null) onIncidentNotification(incidentId);
+
+    // Aceptar tanto incidente_id como incidentId
+    final incidenteId =
+        (message.data['incidente_id'] ?? message.data['incidentId'])
+            ?.toString();
+    // Leer ruta para decidir navegación
+    final ruta = message.data['ruta']?.toString();
+
+    // Incluir ruta en payload de la notificación local
+    final payloadStr = '${ruta ?? ''}|${incidenteId ?? ''}';
+    _showNotificationPopup(
+      title: titleToShow,
+      body: bodyToShow,
+      payload: payloadStr,
+    );
+
+    if (incidenteId != null) {
+      onIncidentNotification(incidenteId);
+      // Navegar inmediatamente si la app está en primer plano
+      if (ruta == '/tracking') {
+        Navigator.of(context).pushNamed(
+          '/tracking',
+          arguments: {'incidente_id': incidenteId},
+        );
+      } else {
+        Navigator.of(context).pushNamed(
+          '/detalle-incidente',
+          arguments: {'incidente_id': incidenteId},
+        );
+      }
+    }
   }
 
   static Future<void> _showNotificationPopup({
     required String title,
     required String body,
+    String? payload,
   }) async {
     try {
       const androidDetails = AndroidNotificationDetails(
@@ -260,6 +311,7 @@ class NotificationService {
         title,
         body,
         platformChannelSpecifics,
+        payload: payload,
       );
     } catch (e) {
       if (kDebugMode) debugPrint('[NotificationService] Error show: $e');
@@ -271,14 +323,23 @@ class NotificationService {
     RemoteMessage message,
     Function(String?) onIncidentNotification,
   ) {
-    final incidentId =
-        message.data['incidente_id'] ?? message.data['incidentId'];
-    if (incidentId != null) {
-      onIncidentNotification(incidentId.toString());
-      Navigator.of(context).pushNamed(
-        '/detalle-incidente',
-        arguments: {'incidente_id': incidentId.toString()},
-      );
+    final incidenteId =
+        (message.data['incidente_id'] ?? message.data['incidentId'])
+            ?.toString();
+    final ruta = message.data['ruta']?.toString();
+    if (incidenteId != null) {
+      onIncidentNotification(incidenteId);
+      if (ruta == '/tracking') {
+        Navigator.of(context).pushNamed(
+          '/tracking',
+          arguments: {'incidente_id': incidenteId},
+        );
+      } else {
+        Navigator.of(context).pushNamed(
+          '/detalle-incidente',
+          arguments: {'incidente_id': incidenteId},
+        );
+      }
     }
   }
 
