@@ -105,6 +105,21 @@ class ApiService {
     }
   }
 
+  /// Obtener la empresa del usuario autenticado - GET /api/empresa/me
+  Future<Map<String, dynamic>> getMyEmpresa() async {
+    final response = await http
+        .get(
+          Uri.parse('${AppConstants.baseUrl}/api/empresa/me'),
+          headers: _getHeaders(),
+        )
+        .timeout(AppConstants.requestTimeout);
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception('Error al obtener mi empresa: ${response.statusCode}');
+  }
+
   /// Obtener el perfil completo del empleado autenticado - GET /api/empleados/me/
   Future<Map<String, dynamic>> getMyEmployeeProfile() async {
     final response = await http

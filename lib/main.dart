@@ -9,6 +9,7 @@ import 'package:auxiliomecanico_movil/core/conexion/servicio_api.dart';
 import 'package:auxiliomecanico_movil/features/autenticacion/vistas/iniciar_sesion_screen.dart';
 import 'package:auxiliomecanico_movil/features/administracion/vistas/panel_principal_admin_screen.dart';
 import 'package:auxiliomecanico_movil/features/administracion/vistas/perfil_admin_screen.dart';
+import 'package:auxiliomecanico_movil/features/administracion/vistas/lista_empleados_screen.dart';
 import 'package:auxiliomecanico_movil/features/clientes/vistas/perfil_cliente_screen.dart';
 import 'package:auxiliomecanico_movil/features/vehiculos/vistas/lista_vehiculos_screen.dart';
 import 'package:auxiliomecanico_movil/features/vehiculos/vistas/registrar_vehiculo_screen.dart';
@@ -97,6 +98,7 @@ class MyApp extends StatelessWidget {
           '/perfil': (context) => const ProfileEntryScreen(),
           '/profile': (context) => const ProfileEntryScreen(),
           '/admin/panel': (context) => const AdminHomeScreen(initialTab: 1),
+          '/admin/empleados': (context) => const ListaEmpleadosScreen(),
           '/vehiculos': (context) => const VehiclesListScreen(),
           '/registrar-vehiculo': (context) => const VehicleRegisterScreen(),
           '/registrar-incidente': (context) => const IncidentReportScreen(),
@@ -109,8 +111,10 @@ class MyApp extends StatelessWidget {
           '/detalle-incidente': (context) => const DetalleIncidenteScreen(),
           '/empleado/perfil': (context) => const EmployeeProfileScreen(),
           '/empleado/home': (context) => const EmployeeHomeScreen(),
-          '/empleado/asignaciones': (context) =>
-              const EmployeeAssignmentsScreen(),
+          '/empleado/asignaciones': (context) {
+            final tipoFiltro = ModalRoute.of(context)?.settings.arguments as String? ?? 'asignadas';
+            return AsignacionesEmpleadoScreen(tipoFiltro: tipoFiltro);
+          },
           '/empleado/tracking': (context) {
             final incidenteId =
                 ModalRoute.of(context)?.settings.arguments as String?;

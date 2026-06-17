@@ -7,14 +7,16 @@ import 'package:auxiliomecanico_movil/features/autenticacion/estado/autenticacio
 import 'package:auxiliomecanico_movil/features/mapa_rastreo/estado/ubicacion_proveedor.dart';
 import 'package:auxiliomecanico_movil/compartidos/widgets/cajon_aplicacion.dart';
 
-class EmployeeAssignmentsScreen extends StatefulWidget {
-  const EmployeeAssignmentsScreen({super.key});
+class AsignacionesEmpleadoScreen extends StatefulWidget {
+  final String tipoFiltro;
+
+  const AsignacionesEmpleadoScreen({super.key, this.tipoFiltro = 'asignadas'});
 
   @override
-  State<EmployeeAssignmentsScreen> createState() => _EmployeeAssignmentsScreenState();
+  State<AsignacionesEmpleadoScreen> createState() => _AsignacionesEmpleadoScreenState();
 }
 
-class _EmployeeAssignmentsScreenState extends State<EmployeeAssignmentsScreen> {
+class _AsignacionesEmpleadoScreenState extends State<AsignacionesEmpleadoScreen> {
   late Future<List<Map<String, dynamic>>> _assignmentsFuture;
 
   @override
@@ -62,19 +64,41 @@ class _EmployeeAssignmentsScreenState extends State<EmployeeAssignmentsScreen> {
     );
   }
 
-  List<Map<String, dynamic>> _splitByStatus(
+  List<Map<String, dynamic>> _filterByTipo(
     List<Map<String, dynamic>> items,
-    bool attended,
+    String tipoFiltro,
   ) {
-    final attendedStatuses = {'atendido', 'cerrado', 'finalizado', 'completado'};
-    final pendingStatuses = {'pendiente', 'asignada', 'en_proceso', 'asignado', 'aceptada'};
     return items.where((item) {
-      final status = (item['incidente_estado'] ?? '').toString().toLowerCase();
-      if (attended) {
-        return attendedStatuses.contains(status);
+      final statusTarea = (item['estado_tarea'] ?? '').toString().toLowerCase();
+      final statusIncidente = (item['incidente_estado'] ?? '').toString().toLowerCase();
+
+      if (tipoFiltro == 'curso') {
+        return ['aceptada', 'en_camino', 'en_proceso', 'en_sitio'].contains(statusTarea) ||
+               ['en_proceso'].contains(statusIncidente);
+      } else if (tipoFiltro == 'historial') {
+        return ['finalizada', 'completada', 'cancelada', 'rechazada', 'atendido', 'cerrado'].contains(statusTarea) ||
+               ['finalizado', 'cancelado'].contains(statusIncidente);
+      } else {
+        // asignadas
+        final isHistorial = ['finalizada', 'completada', 'cancelada', 'rechazada', 'atendido', 'cerrado'].contains(statusTarea) ||
+                            ['finalizado', 'cancelado'].contains(statusIncidente);
+        final isCurso = ['aceptada', 'en_camino', 'en_proceso', 'en_sitio'].contains(statusTarea) ||
+                        ['en_proceso'].contains(statusIncidente);
+        return !isHistorial && !isCurso;
       }
-      return pendingStatuses.contains(status) || status.isEmpty;
     }).toList();
+  }
+
+  String get _titulo {
+    if (widget.tipoFiltro == 'curso') return 'Servicio en Curso';
+    if (widget.tipoFiltro == 'historial') return 'Historial';
+    return 'Solicitudes Asignadas';
+  }
+
+  String get _subtitulo {
+    if (widget.tipoFiltro == 'curso') return 'Solicitudes que estás atendiendo actualmente';
+    if (widget.tipoFiltro == 'historial') return 'Registro de solicitudes pasadas';
+    return 'Nuevas solicitudes pendientes de atención';
   }
 
   @override
@@ -120,33 +144,21 @@ class _EmployeeAssignmentsScreenState extends State<EmployeeAssignmentsScreen> {
           }
 
           final assignments = snapshot.data ?? [];
-          final activeAssignments = _splitByStatus(assignments, false);
-          final completedAssignments = _splitByStatus(assignments, true);
+          final filtradas = _filterByTipo(assignments, widget.tipoFiltro);
 
           return RefreshIndicator(
             onRefresh: _refresh,
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                _AssignmentsHeader(user: user),
+                _AssignmentsHeader(user: user, titulo: _titulo, subtitulo: _subtitulo),
                 const SizedBox(height: 24),
-                // Active assignments
                 _AssignmentsSection(
-                  title: 'Solicitudes activas',
-                  subtitle: 'Pendientes, asignadas o en proceso',
-                  count: activeAssignments.length,
-                  assignments: activeAssignments,
-                  isCompleted: false,
-                  onRefresh: _refresh,
-                ),
-                const SizedBox(height: 24),
-                // Completed assignments
-                _AssignmentsSection(
-                  title: 'Solicitudes completadas',
-                  subtitle: 'Atendidas o finalizadas',
-                  count: completedAssignments.length,
-                  assignments: completedAssignments,
-                  isCompleted: true,
+                  title: _titulo,
+                  subtitle: _subtitulo,
+                  count: filtradas.length,
+                  assignments: filtradas,
+                  isCompleted: widget.tipoFiltro == 'historial',
                   onRefresh: _refresh,
                 ),
               ],
@@ -160,8 +172,10 @@ class _EmployeeAssignmentsScreenState extends State<EmployeeAssignmentsScreen> {
 
 class _AssignmentsHeader extends StatelessWidget {
   final User? user;
+  final String titulo;
+  final String subtitulo;
 
-  const _AssignmentsHeader({required this.user});
+  const _AssignmentsHeader({required this.user, required this.titulo, required this.subtitulo});
 
   @override
   Widget build(BuildContext context) {
@@ -172,14 +186,14 @@ class _AssignmentsHeader extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Mis asignaciones',
+              titulo,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Aquí ves solo las solicitudes que te asignaron',
+              subtitulo,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Colors.grey,
                   ),
@@ -630,8 +644,8 @@ void _openDetailDialog(BuildContext context, Map<String, dynamic> assignment, {S
                                                 onPressed: () {
                                                   Navigator.pop(ctx);
                                                   Navigator.pop(context);
-                                                  if (context.findAncestorStateOfType<_EmployeeAssignmentsScreenState>() != null) {
-                                                    context.findAncestorStateOfType<_EmployeeAssignmentsScreenState>()!._refresh();
+                                                  if (context.mounted && context.findAncestorStateOfType<_AsignacionesEmpleadoScreenState>() != null) {
+                                                    context.findAncestorStateOfType<_AsignacionesEmpleadoScreenState>()!._refresh();
                                                   }
                                                 },
                                                 child: const Text('Después'),
@@ -655,8 +669,8 @@ void _openDetailDialog(BuildContext context, Map<String, dynamic> assignment, {S
 
                                       setState(() => isProcessing = false);
                                       Navigator.pop(context);
-                                      if (context.findAncestorStateOfType<_EmployeeAssignmentsScreenState>() != null) {
-                                        context.findAncestorStateOfType<_EmployeeAssignmentsScreenState>()!._refresh();
+                                      if (context.mounted && context.findAncestorStateOfType<_AsignacionesEmpleadoScreenState>() != null) {
+                                        context.findAncestorStateOfType<_AsignacionesEmpleadoScreenState>()!._refresh();
                                       }
                                     } catch (e) {
                                       setState(() => isProcessing = false);

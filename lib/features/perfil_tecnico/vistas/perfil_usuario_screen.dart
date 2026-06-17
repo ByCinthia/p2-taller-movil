@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+
 import 'package:auxiliomecanico_movil/core/conexion/servicio_api.dart';
 import 'package:auxiliomecanico_movil/features/autenticacion/estado/autenticacion_proveedor.dart';
 import 'package:auxiliomecanico_movil/compartidos/widgets/cajon_aplicacion.dart';
@@ -87,6 +90,7 @@ class _EmployeeProfileTab extends StatefulWidget {
 
 class _EmployeeProfileTabState extends State<_EmployeeProfileTab> {
   late Future<Map<String, dynamic>> _profileFuture;
+  late Future<Map<String, dynamic>> _empresaFuture;
 
   @override
   void initState() {
@@ -98,17 +102,20 @@ class _EmployeeProfileTabState extends State<_EmployeeProfileTab> {
     final token = widget.auth.token;
     if (token == null) {
       _profileFuture = Future.value(const <String, dynamic>{});
+      _empresaFuture = Future.value(const <String, dynamic>{});
       return;
     }
 
-    _profileFuture = ApiService(token: token).getMyEmployeeProfile();
+    final api = ApiService(token: token);
+    _profileFuture = api.getMyEmployeeProfile();
+    _empresaFuture = api.getMyEmpresa();
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Map<String, dynamic>>(
-      future: _profileFuture,
-      builder: (context, snapshot) {
+    return FutureBuilder(
+      future: Future.wait([_profileFuture, _empresaFuture]),
+      builder: (context, AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -139,7 +146,8 @@ class _EmployeeProfileTabState extends State<_EmployeeProfileTab> {
           );
         }
 
-        final profile = snapshot.data ?? const <String, dynamic>{};
+        final profile = snapshot.data?[0] ?? const <String, dynamic>{};
+        final empresa = snapshot.data?[1] ?? const <String, dynamic>{};
         final usuario = (profile['usuario'] as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{};
         final rolesAsignados = (profile['roles_asignados'] as List?)
                 ?.whereType<Map>()
@@ -148,11 +156,14 @@ class _EmployeeProfileTabState extends State<_EmployeeProfileTab> {
             const <Map<String, dynamic>>[];
         final displayName = (profile['nombre_completo'] ?? usuario['first_name'] ?? usuario['username'] ?? 'Empleado').toString();
         final avatarInitial = displayName.isNotEmpty ? displayName[0].toUpperCase() : 'E';
+        
+        final double? tallerLat = (empresa['latitud'] as num?)?.toDouble();
+        final double? tallerLon = (empresa['longitud'] as num?)?.toDouble();
 
         return RefreshIndicator(
           onRefresh: () async {
             setState(_loadProfile);
-            await _profileFuture;
+            await Future.wait([_profileFuture, _empresaFuture]);
           },
           child: ListView(
             padding: const EdgeInsets.all(16),
@@ -200,9 +211,61 @@ class _EmployeeProfileTabState extends State<_EmployeeProfileTab> {
                   _InfoRow(label: 'Teléfono', value: profile['telefono']?.toString()),
                   _InfoRow(label: 'Dirección', value: profile['direccion']?.toString()),
                   _InfoRow(label: 'Cargo', value: profile['cargo_nombre']?.toString()),
-                  _InfoRow(label: 'Empresa', value: profile['empresa']?.toString()),
+                  _InfoRow(label: 'Empresa', value: (profile['empresa_nombre'] ?? profile['empresa'])?.toString()),
                 ],
               ),
+              if (tallerLat != null && tallerLon != null) ...[
+                const SizedBox(height: 16),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Ubicación del Taller',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          height: 200,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: FlutterMap(
+                              options: MapOptions(
+                                initialCenter: LatLng(tallerLat, tallerLon),
+                                initialZoom: 15,
+                              ),
+                              children: [
+                                TileLayer(
+                                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                  userAgentPackageName: 'com.example.auxiliomecanico',
+                                ),
+                                MarkerLayer(
+                                  markers: [
+                                    Marker(
+                                      point: LatLng(tallerLat, tallerLon),
+                                      width: 40,
+                                      height: 40,
+                                      child: const Icon(
+                                        Icons.location_on,
+                                        color: Colors.red,
+                                        size: 40,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 16),
               _SectionCard(
                 title: 'Cuenta de acceso',
@@ -260,7 +323,7 @@ class _EmployeeAssignmentsTab extends StatelessWidget {
             const Text('Ver todas tus asignaciones'),
             const SizedBox(height: 12),
             ElevatedButton(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EmployeeAssignmentsScreen())),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AsignacionesEmpleadoScreen())),
               child: const Text('Abrir mis asignaciones'),
             ),
           ],

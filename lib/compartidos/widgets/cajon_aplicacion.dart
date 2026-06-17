@@ -88,19 +88,43 @@ class AppDrawer extends StatelessWidget {
           ],
           if (role == 'empleado') ...[
             ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('Mi perfil'),
+              leading: const Icon(Icons.dashboard),
+              title: const Text('Dashboard'),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.pushNamed(context, '/empleado/perfil');
+                Navigator.pushNamed(context, '/empleado/home');
               },
             ),
             ListTile(
               leading: const Icon(Icons.assignment),
-              title: const Text('Mis asignaciones'),
+              title: const Text('Solicitudes Asignadas'),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.pushNamed(context, '/empleado/asignaciones');
+                Navigator.pushNamed(context, '/empleado/asignaciones', arguments: 'asignadas');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.car_repair),
+              title: const Text('Servicio en Curso'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/empleado/asignaciones', arguments: 'curso');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.history),
+              title: const Text('Historial'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/empleado/asignaciones', arguments: 'historial');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text('Mi Perfil'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/empleado/perfil');
               },
             ),
           ],

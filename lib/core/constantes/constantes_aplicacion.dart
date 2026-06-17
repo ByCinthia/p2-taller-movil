@@ -2,8 +2,8 @@
 class AppConstants {
   // URLs base del API
   static const String baseUrl =
-      'http://10.73.74.11:8001'; // IP Wi-Fi local del PC para usar desde el móvil
-  // Para emulador Android: 'http://10.0.2.2:8001'
+      'http://10.0.2.2:8000'; // IP para Emulador Android
+  // 'http://10.73.74.11:8000'; // IP Wi-Fi local del PC para usar desde celular físico
 
   static const String apiPrefix = '/api';
   static const String authEndpoint = '$apiPrefix/auth';

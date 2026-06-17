@@ -42,13 +42,11 @@ class AuthProvider with ChangeNotifier {
     final tokenIsAdmin =
         tokenData['is_admin'] == true || tokenData['es_admin'] == true;
 
-    final effectiveRole = tokenIsAdmin
-        ? AppConstants.roleAdmin
-        : (tokenRole == AppConstants.roleAdmin ||
+    final effectiveRole = (tokenRole == AppConstants.roleAdmin ||
               tokenRole == 'cliente' ||
               tokenRole == AppConstants.roleEmployee)
         ? tokenRole!
-        : profile.role;
+        : (tokenIsAdmin ? AppConstants.roleAdmin : profile.role);
 
     if (profile.role == effectiveRole) {
       return profile;
