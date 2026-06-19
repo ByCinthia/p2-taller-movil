@@ -213,36 +213,36 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen> {
               crossAxisCount: 2,
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
+              childAspectRatio: 0.9,
               children: [
                 _FeatureTile(
-                  icon: Icons.person,
-                  title: 'Perfil',
-                  subtitle: 'Ver mis datos',
-                  color: Colors.blue,
-                  onTap: () {
-                    Navigator.pushNamed(context, '/empleado/perfil');
-                  },
-                ),
-                _FeatureTile(
-                  icon: Icons.task,
-                  title: 'Tareas',
-                  subtitle: 'Mis tareas pendientes',
+                  icon: Icons.inbox,
+                  title: 'Mis Pendientes',
+                  subtitle: 'Solicitudes por aceptar',
                   color: Colors.orange,
                   onTap: () {
-                    Navigator.pushNamed(context, '/empleado/asignaciones');
+                    Navigator.pushNamed(context, '/empleado/asignaciones',
+                        arguments: 'asignadas');
                   },
                 ),
                 _FeatureTile(
-                  icon: Icons.calendar_today,
-                  title: 'Horario',
-                  subtitle: 'Mi horario de trabajo',
+                  icon: Icons.run_circle,
+                  title: 'En Curso',
+                  subtitle: 'Servicios activos',
+                  color: Colors.blue,
+                  onTap: () {
+                    Navigator.pushNamed(context, '/empleado/asignaciones',
+                        arguments: 'curso');
+                  },
+                ),
+                _FeatureTile(
+                  icon: Icons.history,
+                  title: 'Historial',
+                  subtitle: 'Servicios finalizados',
                   color: Colors.green,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Horario en desarrollo'),
-                      ),
-                    );
+                    Navigator.pushNamed(context, '/empleado/asignaciones',
+                        arguments: 'historial');
                   },
                 ),
                 _FeatureTile(

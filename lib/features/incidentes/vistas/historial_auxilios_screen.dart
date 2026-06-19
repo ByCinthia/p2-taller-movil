@@ -26,6 +26,13 @@ class _IncidentHistoryScreenState extends State<IncidentHistoryScreen> {
     _future = svc.listarIncidentes();
   }
 
+  bool _esEstadoFinal(String? estado) {
+    if (estado == null) return false;
+    final s = estado.toLowerCase();
+    return ['atendido', 'atendida', 'finalizado', 'finalizada',
+            'completado', 'completada', 'cancelado', 'cancelada'].contains(s);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,19 +93,26 @@ class _IncidentHistoryScreenState extends State<IncidentHistoryScreen> {
                                 spacing: 8,
                                 runSpacing: 8,
                                 children: [
-                                  FractionallySizedBox(
-                                    widthFactor: btnWidthFactor,
-                                    child: TextButton(
-                                      onPressed: () {
-                                        Navigator.pushNamed(
-                                          context,
-                                          '/tracking',
-                                          arguments: {'incidente_id': id},
-                                        );
-                                      },
-                                      child: const Text('Ver seguimiento'),
+                                  // Mostrar seguimiento solo si no está finalizado
+                                  if (!_esEstadoFinal(inc['estado']?.toString()))
+                                    FractionallySizedBox(
+                                      widthFactor: btnWidthFactor,
+                                      child: ElevatedButton.icon(
+                                        onPressed: () {
+                                          Navigator.pushNamed(
+                                            context,
+                                            '/cliente/seguimiento',
+                                            arguments: id,
+                                          );
+                                        },
+                                        icon: const Icon(Icons.location_on, size: 16),
+                                        label: const Text('Seguimiento'),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color(0xFF6C63FF),
+                                          foregroundColor: Colors.white,
+                                        ),
+                                      ),
                                     ),
-                                  ),
                                   FractionallySizedBox(
                                     widthFactor: btnWidthFactor,
                                     child: TextButton(

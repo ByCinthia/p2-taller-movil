@@ -145,7 +145,8 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
               title: const Text('Seguimiento del servicio'),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.pushNamed(context, '/tracking');
+                // Navigate to history to pick the active incident
+                Navigator.pushNamed(context, '/historial-incidentes');
               },
             ),
             const Divider(),

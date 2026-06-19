@@ -529,6 +529,42 @@ class ApiService {
     );
   }
 
+  /// Aceptar asignación como técnico - POST /api/incidentes/{id}/aceptar-solicitud
+  Future<Map<String, dynamic>> aceptarSolicitud(String incidenteId) async {
+    final response = await http
+        .post(
+          Uri.parse('${AppConstants.baseUrl}/api/incidentes/$incidenteId/aceptar-solicitud'),
+          headers: _getHeaders(),
+        )
+        .timeout(AppConstants.requestTimeout);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    if (response.statusCode == 403) {
+      throw Exception('No tienes permiso para aceptar esta solicitud');
+    }
+    throw Exception('Error al aceptar solicitud: ${response.statusCode}');
+  }
+
+  /// Cancelar aceptación de asignación - POST /api/incidentes/{id}/cancelar-aceptacion
+  Future<Map<String, dynamic>> cancelarAceptacion(String incidenteId) async {
+    final response = await http
+        .post(
+          Uri.parse('${AppConstants.baseUrl}/api/incidentes/$incidenteId/cancelar-aceptacion'),
+          headers: _getHeaders(),
+        )
+        .timeout(AppConstants.requestTimeout);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    if (response.statusCode == 403) {
+      throw Exception('No tienes permiso para cancelar esta aceptación');
+    }
+    throw Exception('Error al cancelar aceptación: ${response.statusCode}');
+  }
+
   /// Actualizar solo el estado de un incidente - PATCH /api/incidentes/{id}/estado
   /// Opcionalmente incluir latitud y longitud cuando el estado es "en_proceso"
   Future<Map<String, dynamic>> updateIncidenteEstado(

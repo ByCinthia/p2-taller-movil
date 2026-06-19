@@ -22,6 +22,8 @@ import 'package:auxiliomecanico_movil/features/mapa_rastreo/vistas/seleccionar_u
 import 'package:auxiliomecanico_movil/features/perfil_tecnico/vistas/panel_principal_tecnico_screen.dart';
 import 'package:auxiliomecanico_movil/features/perfil_tecnico/vistas/perfil_usuario_screen.dart';
 import 'package:auxiliomecanico_movil/features/perfil_tecnico/vistas/asignaciones_tecnico_screen.dart';
+import 'package:auxiliomecanico_movil/features/perfil_tecnico/vistas/detalle_servicio_empleado_screen.dart';
+import 'package:auxiliomecanico_movil/features/clientes/vistas/seguimiento_cliente_screen.dart';
 import 'package:auxiliomecanico_movil/features/mapa_rastreo/vistas/seguimiento_en_tiempo_real_screen.dart';
 import 'package:auxiliomecanico_movil/features/notificaciones/vistas/lista_notificaciones_screen.dart';
 import 'package:auxiliomecanico_movil/core/tema/tema_aplicacion.dart';
@@ -115,6 +117,16 @@ class MyApp extends StatelessWidget {
             final tipoFiltro = ModalRoute.of(context)?.settings.arguments as String? ?? 'asignadas';
             return AsignacionesEmpleadoScreen(tipoFiltro: tipoFiltro);
           },
+          '/empleado/detalle-servicio': (context) {
+            final incidenteId =
+                ModalRoute.of(context)?.settings.arguments as String?;
+            if (incidenteId == null) {
+              return const Scaffold(
+                body: Center(child: Text('ID de incidente no proporcionado')),
+              );
+            }
+            return DetalleServicioEmpleadoScreen(incidenteId: incidenteId);
+          },
           '/empleado/tracking': (context) {
             final incidenteId =
                 ModalRoute.of(context)?.settings.arguments as String?;
@@ -124,6 +136,16 @@ class MyApp extends StatelessWidget {
               );
             }
             return EmployeeTrackingScreen(incidenteId: incidenteId);
+          },
+          '/cliente/seguimiento': (context) {
+            final incidenteId =
+                ModalRoute.of(context)?.settings.arguments as String?;
+            if (incidenteId == null) {
+              return const Scaffold(
+                body: Center(child: Text('ID de incidente no proporcionado')),
+              );
+            }
+            return SeguimientoClienteScreen(incidenteId: incidenteId);
           },
           '/notificaciones': (context) => const NotificationsScreen(),
         },
