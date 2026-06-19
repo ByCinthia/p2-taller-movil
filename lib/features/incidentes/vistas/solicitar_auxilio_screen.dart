@@ -71,6 +71,9 @@ class _IncidentReportFormState extends State<_IncidentReportForm> {
       setState(() {
         _vehicles = list;
         _loading = false;
+        if (_vehicles.isNotEmpty) {
+          _selectedVehicle = _vehicles.firstWhere((v) => v.principal, orElse: () => _vehicles.first);
+        }
       });
     } catch (e) {
       setState(() {
@@ -91,8 +94,9 @@ class _IncidentReportFormState extends State<_IncidentReportForm> {
       _showSnack('Selecciona una ubicación en el mapa');
       return;
     }
+    final finalVehicle = _selectedVehicle ?? (_vehicles.isNotEmpty ? _vehicles.firstWhere((v) => v.principal, orElse: () => _vehicles.first) : null);
     final payload = {
-      'vehiculo_id': _selectedVehicle?.id,
+      'vehiculo_id': finalVehicle?.id,
       'tipo': _selectedTipo,
       'descripcion': _descCtrl.text.trim(),
       'prioridad': _prioridad,
